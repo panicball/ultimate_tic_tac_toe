@@ -17,10 +17,6 @@ class GameStatus(StrEnum):
     draw = "draw"
 
 
-class SuperBoardStatus(StrEnum):
-    anywhere = 'anywhere'
-
-
 class MiniBoard:
     def __init__(self):
         self.grid: list[list[str]] = [[CellStatus.empty for _ in range(GRID_SIZE_X)] for _ in range(GRID_SIZE_Y)]
@@ -96,30 +92,30 @@ class UltimateBoard:
         self.boards: list[MiniBoard] = [MiniBoard() for _ in range(9)]
         self.superBoard: MiniBoard = MiniBoard()
         self.activeBoard: int | None = None
-        self.superBoardStatus: str = GameStatus.empty
         self.activeBoardStatus: tuple[int, int] | None
         self.boardIndexes: list[list[int]] = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
     def legal_moves(self) -> list[tuple[int, tuple[int, int]]]:
-        def available_cells(board_idx: int, mini_board: MiniBoard) -> list[tuple[int, tuple[int, int]]]:
-            empty_cells = []
-            for r in range(GRID_SIZE_X):
-                for c in range(GRID_SIZE_Y):
-                    if mini_board.grid[r][c] == CellStatus.empty:
-                        empty_cells.append((board_idx, (r, c)))
-            return empty_cells
-
         if self.activeBoard is not None:
             board = self.boards[self.activeBoard]
             if board.status == GameStatus.empty:
-                return available_cells(self.activeBoard, board)
+                return self.available_cells(self.activeBoard, board)
             self.activeBoard = None
 
         moves = []
         for idx, board in enumerate(self.boards):
             if board.status == GameStatus.empty:
-                moves.extend(available_cells(idx, board))
+                moves.extend(self.available_cells(idx, board))
         return moves
+
+    @staticmethod
+    def available_cells(board_idx: int, mini_board: MiniBoard) -> list[tuple[int, tuple[int, int]]]:
+        empty_cells = []
+        for r in range(GRID_SIZE_X):
+            for c in range(GRID_SIZE_Y):
+                if mini_board.grid[r][c] == CellStatus.empty:
+                    empty_cells.append((board_idx, (r, c)))
+        return empty_cells
 
     def apply(self, board_idx: int, cell_idx: tuple[int, int], player_value: str) -> bool:
         if not (0 <= board_idx <= 8):
@@ -137,6 +133,7 @@ class UltimateBoard:
             raise ValueError("Given player value is unknown. Value should be x or o.")
 
         small_board = self.boards[board_idx]
+        # if the board is already won or drawn - we cannot proceed
         if small_board.status != GameStatus.empty:
             return False
 
