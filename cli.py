@@ -9,7 +9,7 @@ def main():
 
     board = UltimateBoard()
     current_player = args.symbol
-    board_idx = board.activeBoard if board.activeBoard is not None else int(input("Choose starting board (0–8): "))
+    board_idx = int(input("Choose starting board (0–8): "))
 
     print("\nWelcome to Ultimate Tic-Tac-Toe!")
     print(board.render_super())
@@ -19,8 +19,16 @@ def main():
             print(f"\nCurrent Player: {current_player}")
             print(f"Active Board: {board_idx if board_idx is not None else 'Any'}")
 
+            board.activeBoard = board_idx
+
             legal = board.legal_moves()
             print(f"Legal moves: {legal}")
+
+            if board_idx is None:
+                board_idx = int(input("Choose a board to play in (0–8): "))
+                if not (0 <= board_idx <= 8):
+                    print(" xxx Board index must be between 0 and 8. xxx")
+                    continue
 
             coords = input("Enter row and column (e.g., 0 2): ").strip().split()
             if len(coords) != 2:
@@ -32,12 +40,6 @@ def main():
             if not (0 <= row <= 2 and 0 <= col <= 2):
                 print(" xxx Coordinates must be between 0 and 2. xxx")
                 continue
-
-            if board_idx is None:
-                board_idx = int(input("Choose a board to play in (0–8): "))
-                if not (0 <= board_idx <= 8):
-                    print(" xxx Board index must be between 0 and 8. xxx")
-                    continue
 
             move = (board_idx, (row, col))
             if move not in legal:
